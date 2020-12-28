@@ -57,6 +57,8 @@ final class ExtensionSet
     private $globals;
     /** @var array<callable(string): (TwigFunction|false)> */
     private $functionCallbacks = [];
+    /** @var array<callable> */
+    private $variableCallbacks = [];
     /** @var array<callable(string): (TwigFilter|false)> */
     private $filterCallbacks = [];
     /** @var array<callable(string): (TwigTest|false)> */
@@ -216,6 +218,27 @@ final class ExtensionSet
     public function registerUndefinedFunctionCallback(callable $callable): void
     {
         $this->functionCallbacks[] = $callable;
+    }
+	
+	public function getVariable(string $name)
+	{
+		foreach ($this->variableCallbacks as $callback) {
+			if (false !== $variable = $callback($name)) {
+				return $variable;
+			}
+		}
+		
+		return null;
+	}
+
+    public function registerUndefinedVariableCallback(callable $callable): void
+    {
+        $this->variableCallbacks = [$callable];
+    }
+    
+    public function getUndefinedVariableCallbacks(): array
+    {
+        return $this->variableCallbacks;
     }
 
     public function addFilter(TwigFilter $filter): void
