@@ -46,9 +46,12 @@ class NameExpression extends AbstractExpression implements SupportDefinedTestInt
                 $compiler->repr(true);
             } elseif (\PHP_VERSION_ID >= 70400) {
                 $compiler
-                    ->raw('array_key_exists(')
+                    ->raw('(array_key_exists(')
                     ->string($name)
-                    ->raw(', $context)')
+                    ->raw(', $context) || !is_null(')
+					->raw('$this->env->getUndefinedVariable(')
+                    ->string($name)
+                    ->raw(')))')
                 ;
             } else {
                 $compiler
@@ -56,23 +59,32 @@ class NameExpression extends AbstractExpression implements SupportDefinedTestInt
                     ->string($name)
                     ->raw(']) || array_key_exists(')
                     ->string($name)
-                    ->raw(', $context))')
+                    ->raw(', $context) || !is_null(')
+					->raw('$this->env->getUndefinedVariable(')
+                    ->string($name)
+					->raw(')))')
                 ;
             }
         } elseif (isset($this->specialVars[$name])) {
             $compiler->raw($this->specialVars[$name]);
         } elseif ($this->getAttribute('always_defined')) {
             $compiler
-                ->raw('$context[')
+                ->raw('($context[')
                 ->string($name)
-                ->raw(']')
+                ->raw('] ?? ')
+                ->raw('$this->env->getUndefinedVariable(')
+                ->string($name)
+                ->raw('))')
             ;
         } else {
             if ($this->getAttribute('ignore_strict_check') || !$compiler->getEnvironment()->isStrictVariables()) {
                 $compiler
                     ->raw('($context[')
                     ->string($name)
-                    ->raw('] ?? null)')
+                    ->raw('] ?? ')
+                    ->raw('$this->env->getUndefinedVariable(')
+                    ->string($name)
+                    ->raw('))')
                 ;
             } else {
                 $compiler
