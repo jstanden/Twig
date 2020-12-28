@@ -38,6 +38,7 @@ final class ExtensionSet
     private $binaryOperators;
     private $globals;
     private $functionCallbacks = [];
+    private $variableCallbacks = [];
     private $filterCallbacks = [];
     private $parserCallbacks = [];
     private $lastModified = 0;
@@ -181,6 +182,27 @@ final class ExtensionSet
     public function registerUndefinedFunctionCallback(callable $callable): void
     {
         $this->functionCallbacks[] = $callable;
+    }
+	
+	public function getVariable(string $name)
+	{
+		foreach ($this->variableCallbacks as $callback) {
+			if (false !== $variable = $callback($name)) {
+				return $variable;
+			}
+		}
+		
+		return null;
+	}
+
+    public function registerUndefinedVariableCallback(callable $callable): void
+    {
+        $this->variableCallbacks = [$callable];
+    }
+    
+    public function getUndefinedVariableCallbacks(): array
+    {
+        return $this->variableCallbacks;
     }
 
     public function addFilter(TwigFilter $filter): void
